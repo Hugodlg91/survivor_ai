@@ -1,16 +1,16 @@
 {
-  "hp": 120,
-  "max_hp": 120,
-  "xp": 83,
+  "hp": 130,
+  "max_hp": 130,
+  "xp": 65,
   "xp_for_next_level": 100,
-  "level": 3,
+  "level": 4,
   "inventory": [
     "Rose",
-    "TikTok",
-    "Perfume",
-    "Finger Heart",
+    "Heart",
+    "Lion",
+    "Rose",
     "Lion",
     "Drama Queen"
   ],
-  "last_action": "💀 L'aventurier est momentanément désorienté... (erreur IA)"
+  "last_action": "Merci beaucoup @StreamHero pour cette Drama Queen incroyable ! Je l'utilise pour détruire un mur de pierre brutale, ouvrant une nouvelle porte vers l'abîme... 120 XP, c'est le niveau 4 !"
 }

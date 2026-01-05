@@ -425,6 +425,7 @@
         const JSON_FILE = 'obs_files/game_state.json';
 
         let lastAction = '';
+        let lastInventory = [];
 
         // Fonction pour charger les données
         async function loadGameState() {
@@ -452,15 +453,19 @@
             // Niveau
             document.getElementById('levelNumber').textContent = data.level;
 
-            // Inventaire
-            const inventoryEl = document.getElementById('inventoryItems');
-            if (data.inventory && data.inventory.length > 0) {
-                inventoryEl.innerHTML = data.inventory
-                    .slice(-3) // Les 3 derniers items
-                    .map(item => `<div class="inventory-item">${item}</div>`)
-                    .join('');
-            } else {
-                inventoryEl.innerHTML = '<div class="inventory-item">Vide</div>';
+            // Inventaire - Ne mettre à jour QUE si changé
+            const inventoryChanged = JSON.stringify(data.inventory) !== JSON.stringify(lastInventory);
+            if (inventoryChanged) {
+                const inventoryEl = document.getElementById('inventoryItems');
+                if (data.inventory && data.inventory.length > 0) {
+                    inventoryEl.innerHTML = data.inventory
+                        .slice(-3) // Les 3 derniers items
+                        .map(item => `<div class="inventory-item">${item}</div>`)
+                        .join('');
+                } else {
+                    inventoryEl.innerHTML = '<div class="inventory-item">Vide</div>';
+                }
+                lastInventory = [...data.inventory]; // Copie pour la prochaine comparaison
             }
 
             // Dernière action (avec animation si changement)
