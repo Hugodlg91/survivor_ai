@@ -7,7 +7,8 @@ import asyncio
 import time
 import os
 from typing import Optional
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from src.config import (
     GEMINI_API_KEY, GEMINI_MODEL, SYSTEM_PROMPT, GameConfig, get_gift_info
 )
@@ -129,11 +130,8 @@ class GameEngine:
         if not GEMINI_API_KEY:
             raise ValueError("GEMINI_API_KEY manquante dans le fichier .env")
         
-        genai.configure(api_key=GEMINI_API_KEY)
-        self.model = genai.GenerativeModel(
-            model_name=GEMINI_MODEL,
-            system_instruction=SYSTEM_PROMPT
-        )
+        # Créer le client avec la nouvelle API google.genai
+        self.client = genai.Client(api_key=GEMINI_API_KEY)
         
         # Créer les dossiers OBS si nécessaire
         os.makedirs("obs_files", exist_ok=True)
@@ -200,11 +198,25 @@ class GameEngine:
             Réponse générée par l'IA
         """
         try:
-            # Générer la réponse
+            # Créer le contenu avec le system prompt et le user prompt
+            contents = [
+                types.Content(
+                    role="system",
+                    parts=[types.Part(text=SYSTEM_PROMPT)]
+                ),
+                types.Content(
+                    role="user",
+                    parts=[types.Part(text=prompt)]
+                )
+            ]
+            
+            # Générer la réponse avec la nouvelle API
             response = await asyncio.to_thread(
-                self.model.generate_content,
-                prompt
+                self.client.models.generate_content,
+                model=GEMINI_MODEL,
+                contents=contents
             )
+            
             return response.text.strip()
         except Exception as e:
             print(f"❌ Erreur API Gemini: {e}")

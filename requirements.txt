@@ -3,8 +3,8 @@
 # Connexion TikTok Live
 TikTokLive>=5.0.0
 
-# API Google Gemini
-google-generativeai>=0.3.0
+# API Google Gemini (nouveau SDK)
+google-genai>=0.1.0
 
 # Gestion des variables d'environnement
 python-dotenv>=1.0.0
