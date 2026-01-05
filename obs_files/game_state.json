@@ -1,15 +1,16 @@
 {
-  "hp": 110,
-  "max_hp": 110,
-  "xp": 63,
+  "hp": 120,
+  "max_hp": 120,
+  "xp": 83,
   "xp_for_next_level": 100,
-  "level": 2,
+  "level": 3,
   "inventory": [
     "Rose",
     "TikTok",
     "Perfume",
     "Finger Heart",
-    "Lion"
+    "Lion",
+    "Drama Queen"
   ],
   "last_action": "🎮 En attente d'événements..."
 }
