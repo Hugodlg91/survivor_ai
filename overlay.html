@@ -366,6 +366,80 @@
                 transform: scale(1);
             }
         }
+
+        /* Animation de tremblement (screen shake) */
+        @keyframes shake {
+            0% {
+                transform: translate(1px, 1px) rotate(0deg);
+            }
+
+            10% {
+                transform: translate(-1px, -2px) rotate(-1deg);
+            }
+
+            20% {
+                transform: translate(-3px, 0px) rotate(1deg);
+            }
+
+            30% {
+                transform: translate(3px, 2px) rotate(0deg);
+            }
+
+            40% {
+                transform: translate(1px, -1px) rotate(1deg);
+            }
+
+            50% {
+                transform: translate(-1px, 2px) rotate(-1deg);
+            }
+
+            60% {
+                transform: translate(-3px, 1px) rotate(0deg);
+            }
+
+            70% {
+                transform: translate(3px, 1px) rotate(-1deg);
+            }
+
+            80% {
+                transform: translate(-1px, -1px) rotate(1deg);
+            }
+
+            90% {
+                transform: translate(1px, 2px) rotate(0deg);
+            }
+
+            100% {
+                transform: translate(1px, -2px) rotate(-1deg);
+            }
+        }
+
+        .shake-effect {
+            animation: shake 0.5s;
+        }
+
+        /* Texte flottant (floating damage/heal numbers) */
+        .floating-text {
+            position: absolute;
+            font-weight: bold;
+            font-size: 32px;
+            pointer-events: none;
+            animation: floatUp 1.5s ease-out forwards;
+            text-shadow: 0 0 10px black, 0 0 20px black;
+            z-index: 9999;
+        }
+
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateY(-80px) scale(1.5);
+            }
+        }
     </style>
 </head>
 
@@ -419,13 +493,35 @@
         </div>
     </div>
 
+    <!-- Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
     <script>
         // Configuration
         const UPDATE_INTERVAL = 500; // Mise à jour toutes les 500ms
         const JSON_FILE = 'obs_files/game_state.json';
 
-        let lastAction = '';
-        let lastInventory = [];
+        // État précédent pour comparaison et détection de changements
+        let lastState = {
+            hp: 100,
+            max_hp: 100,
+            xp: 0,
+            level: 1,
+            inventory: [],
+            last_action: ''
+        };
+
+        // Fonction utilitaire pour créer des textes flottants (+HP / -HP)
+        function spawnFloatingText(text, x, y, color) {
+            const el = document.createElement('div');
+            el.className = 'floating-text';
+            el.textContent = text;
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            el.style.color = color;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 1500);
+        }
 
         // Fonction pour charger les données
         async function loadGameState() {
@@ -438,46 +534,88 @@
             }
         }
 
-        // Mise à jour de l'interface
+        // Mise à jour de l'interface avec effets visuels
         function updateUI(data) {
-            // HP
+            // 1. GESTION HP (Dégâts et Soins) + EFFETS VISUELS
+            if (data.hp !== lastState.hp) {
+                const diff = data.hp - lastState.hp;
+                const hpBar = document.getElementById('hpBar');
+                const barRect = hpBar.getBoundingClientRect();
+
+                if (diff < 0) {
+                    // DÉGÂTS : Shake + Texte Rouge
+                    document.body.classList.add('shake-effect');
+                    setTimeout(() => document.body.classList.remove('shake-effect'), 500);
+                    spawnFloatingText(diff.toString(), barRect.left + barRect.width / 2, barRect.top - 20, '#ff1744');
+                } else if (diff > 0) {
+                    // SOIN : Texte Vert
+                    spawnFloatingText('+' + diff, barRect.left + barRect.width / 2, barRect.top - 20, '#00e676');
+                }
+            }
+
+            // Mise à jour visuelle barre HP
             const hpPercent = (data.hp / data.max_hp) * 100;
             document.getElementById('hpBar').style.width = hpPercent + '%';
             document.getElementById('hpText').textContent = `${data.hp}/${data.max_hp}`;
 
-            // XP
+            // 2. GESTION XP
             const xpPercent = (data.xp / data.xp_for_next_level) * 100;
             document.getElementById('xpBar').style.width = xpPercent + '%';
             document.getElementById('xpText').textContent = `${data.xp}/${data.xp_for_next_level}`;
 
-            // Niveau
+            // 3. LEVEL UP : CONFETTIS + ANIMATION BADGE
+            if (data.level > lastState.level) {
+                // 🎉 CONFETTIS !
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#ffd700', '#ffaf00', '#ff6b9d', '#00d4ff']
+                });
+
+                // Animation du badge de niveau
+                const badge = document.querySelector('.level-badge');
+                badge.style.transform = "scale(1.3)";
+                badge.style.transition = "transform 0.3s ease";
+                setTimeout(() => {
+                    badge.style.transform = "scale(1)";
+                }, 500);
+            }
             document.getElementById('levelNumber').textContent = data.level;
 
-            // Inventaire - Ne mettre à jour QUE si changé
-            const inventoryChanged = JSON.stringify(data.inventory) !== JSON.stringify(lastInventory);
+            // 4. INVENTAIRE - Ne mettre à jour QUE si changé (anti-clignotement)
+            const inventoryChanged = JSON.stringify(data.inventory) !== JSON.stringify(lastState.inventory);
             if (inventoryChanged) {
                 const inventoryEl = document.getElementById('inventoryItems');
                 if (data.inventory && data.inventory.length > 0) {
                     inventoryEl.innerHTML = data.inventory
                         .slice(-3) // Les 3 derniers items
-                        .map(item => `<div class="inventory-item">${item}</div>`)
+                        .map(item => `<div class="inventory-item">🎁 ${item}</div>`)
                         .join('');
                 } else {
                     inventoryEl.innerHTML = '<div class="inventory-item">Vide</div>';
                 }
-                lastInventory = [...data.inventory]; // Copie pour la prochaine comparaison
             }
 
-            // Dernière action (avec animation si changement)
+            // 5. DERNIÈRE ACTION (avec animation si changement)
             const actionEl = document.getElementById('actionText');
-            if (data.last_action && data.last_action !== lastAction) {
+            if (data.last_action && data.last_action !== lastState.last_action) {
                 actionEl.classList.remove('new-action');
                 // Force reflow
                 void actionEl.offsetWidth;
                 actionEl.classList.add('new-action');
                 actionEl.textContent = data.last_action;
-                lastAction = data.last_action;
             }
+
+            // Sauvegarde de l'état pour la prochaine boucle
+            lastState = {
+                hp: data.hp,
+                max_hp: data.max_hp,
+                xp: data.xp,
+                level: data.level,
+                inventory: [...data.inventory],
+                last_action: data.last_action
+            };
         }
 
         // Démarrer les mises à jour automatiques
