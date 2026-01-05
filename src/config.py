@@ -10,11 +10,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ============================================================================
-# CONFIGURATION API GEMINI
+# CONFIGURATION OLLAMA (IA LOCALE)
 # ============================================================================
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-GEMINI_MODEL = "gemini-2.5-flash"  # Modèle rapide avec quota disponible
+# URL de l'API Ollama locale
+OLLAMA_API_URL = "http://localhost:11434/api/generate"
+
+# Modèle Ollama à utiliser (léger et rapide)
+OLLAMA_MODEL = "llama3.2:3b"
 
 # ============================================================================
 # CONFIGURATION TIKTOK

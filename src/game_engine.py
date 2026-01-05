@@ -7,11 +7,10 @@ import asyncio
 import time
 import os
 import json
+import requests
 from typing import Optional
-from google import genai
-from google.genai import types
 from src.config import (
-    GEMINI_API_KEY, GEMINI_MODEL, SYSTEM_PROMPT, GameConfig, get_gift_info
+    OLLAMA_MODEL, OLLAMA_API_URL, SYSTEM_PROMPT, GameConfig, get_gift_info
 )
 
 
@@ -127,12 +126,9 @@ class GameEngine:
         self.api_queue = asyncio.Queue()  # File d'attente pour les requêtes
         self.is_running = False
         
-        # Configurer l'API Gemini
-        if not GEMINI_API_KEY:
-            raise ValueError("GEMINI_API_KEY manquante dans le fichier .env")
-        
-        # Créer le client avec la nouvelle API google.genai
-        self.client = genai.Client(api_key=GEMINI_API_KEY)
+        # Ollama ne nécessite pas de configuration spéciale
+        # L'API locale est toujours disponible
+        print(f"🤖 IA locale configurée: {OLLAMA_MODEL}")
         
         # Créer les dossiers OBS si nécessaire
         os.makedirs("obs_files", exist_ok=True)
@@ -196,7 +192,7 @@ class GameEngine:
                     await asyncio.sleep(wait_time)
                 
                 # Effectuer l'appel API
-                response = await self._call_gemini_api(request_data)
+                response = await self._call_ollama_api(request_data)
                 
                 # Mettre à jour le timestamp
                 self.last_api_call = time.time()
@@ -211,9 +207,9 @@ class GameEngine:
                 print(f"❌ Erreur lors du traitement de la queue API: {e}")
                 await asyncio.sleep(1)
     
-    async def _call_gemini_api(self, prompt: str) -> str:
+    async def _call_ollama_api(self, prompt: str) -> str:
         """
-        Appelle l'API Gemini de manière asynchrone
+        Appelle l'API Ollama locale de manière asynchrone
         
         Args:
             prompt: Texte du prompt à envoyer
@@ -222,24 +218,38 @@ class GameEngine:
             Réponse générée par l'IA
         """
         try:
-            # Créer la configuration avec system instruction
-            config = types.GenerateContentConfig(
-                system_instruction=SYSTEM_PROMPT,
-                temperature=1.0
-            )
+            # Préparer la requête pour Ollama
+            payload = {
+                "model": OLLAMA_MODEL,
+                "prompt": f"{SYSTEM_PROMPT}\n\nUtilisateur: {prompt}\n\nAssistant:",
+                "stream": False,
+                "options": {
+                    "temperature": 0.9,
+                    "top_p": 0.9
+                }
+            }
             
-            # Générer la réponse avec la nouvelle API
+            # Appeler l'API Ollama locale
             response = await asyncio.to_thread(
-                self.client.models.generate_content,
-                model=GEMINI_MODEL,
-                contents=prompt,
-                config=config
+                requests.post,
+                OLLAMA_API_URL,
+                json=payload,
+                timeout=30
             )
             
-            return response.text.strip()
+            if response.status_code == 200:
+                result = response.json()
+                return result.get("response", "").strip()
+            else:
+                print(f"❌ Erreur Ollama ({response.status_code}): {response.text}")
+                return "💀 L'aventurier est momentanément désorienté... (erreur IA)"
+                
+        except requests.exceptions.ConnectionError:
+            print("❌ Ollama n'est pas démarré. Lance `ollama serve` dans un terminal.")
+            return "💀 L'IA locale n'est pas disponible..."
         except Exception as e:
-            print(f"❌ Erreur API Gemini: {e}")
-            return "💀 L'aventurier est momentanément désorienté... (erreur API)"
+            print(f"❌ Erreur API Ollama: {e}")
+            return "💀 L'aventurier est momentanément désorienté... (erreur IA)"
     
     async def handle_gift(self, username: str, gift_name: str):
         """
