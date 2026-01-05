@@ -1,16 +1,15 @@
 {
-  "hp": 140,
-  "max_hp": 140,
-  "xp": 45,
+  "hp": 110,
+  "max_hp": 110,
+  "xp": 63,
   "xp_for_next_level": 100,
-  "level": 5,
+  "level": 2,
   "inventory": [
     "Rose",
     "TikTok",
-    "Lion",
-    "Lion",
-    "Lion",
-    "Drama Queen"
+    "Perfume",
+    "Finger Heart",
+    "Lion"
   ],
-  "last_action": "💀 L'aventurier est momentanément désorienté... (erreur API)"
+  "last_action": "🎮 En attente d'événements..."
 }
