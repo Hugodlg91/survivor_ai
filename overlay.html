@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, height=1080">
+    <title>L'IA Survivante - Overlay</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 1920px;
+            height: 1080px;
+            background: transparent;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        /* Container principal */
+        .overlay-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            padding: 40px;
+        }
+
+        /* En-tête avec titre */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .title {
+            font-size: 72px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ff6b9d 0%, #ffa06b 50%, #ffd56b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 40px rgba(255, 107, 157, 0.5);
+            letter-spacing: 4px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        .subtitle {
+            font-size: 24px;
+            color: #ffa06b;
+            margin-top: 10px;
+            opacity: 0.8;
+        }
+
+        /* Zone des stats (gauche) */
+        .stats-panel {
+            position: absolute;
+            top: 200px;
+            left: 40px;
+            width: 450px;
+            background: rgba(20, 20, 35, 0.92);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 107, 157, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 
+                        0 0 20px rgba(255, 107, 157, 0.2);
+            animation: slideInLeft 1s ease-out;
+        }
+
+        .stat-row {
+            margin-bottom: 25px;
+        }
+
+        .stat-label {
+            font-size: 18px;
+            color: #ccc;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Barre de HP */
+        .hp-bar-container {
+            position: relative;
+            width: 100%;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 2px solid rgba(255, 50, 100, 0.5);
+        }
+
+        .hp-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ff1744 0%, #ff6b9d 100%);
+            border-radius: 20px;
+            transition: width 0.5s ease;
+            position: relative;
+            box-shadow: 0 0 20px rgba(255, 23, 68, 0.8);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .hp-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            z-index: 10;
+        }
+
+        /* Barre de XP */
+        .xp-bar-container {
+            position: relative;
+            width: 100%;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            overflow: hidden;
+            border: 2px solid rgba(100, 200, 255, 0.5);
+        }
+
+        .xp-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff 0%, #64b5f6 100%);
+            border-radius: 15px;
+            transition: width 0.5s ease;
+            position: relative;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.8);
+        }
+
+        .xp-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            z-index: 10;
+        }
+
+        /* Badge de niveau */
+        .level-badge {
+            position: absolute;
+            top: 200px;
+            right: 40px;
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, #ffd700 0%, #ffaf00 100%);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 40px rgba(255, 215, 0, 0.5),
+                        0 0 30px rgba(255, 215, 0, 0.3);
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            animation: slideInRight 1s ease-out, rotate 20s linear infinite;
+        }
+
+        .level-label {
+            font-size: 20px;
+            color: rgba(0, 0, 0, 0.7);
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .level-number {
+            font-size: 80px;
+            font-weight: 900;
+            color: rgba(0, 0, 0, 0.9);
+            line-height: 1;
+        }
+
+        /* Inventaire */
+        .inventory {
+            position: absolute;
+            top: 420px;
+            left: 40px;
+            width: 450px;
+            background: rgba(20, 20, 35, 0.92);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 170, 107, 0.3);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            animation: slideInLeft 1.2s ease-out;
+        }
+
+        .inventory-title {
+            font-size: 20px;
+            color: #ffa06b;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .inventory-items {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .inventory-item {
+            background: rgba(255, 170, 107, 0.2);
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 16px;
+            color: #ffa06b;
+            border: 1px solid rgba(255, 170, 107, 0.4);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Dernière action (centre-bas) */
+        .action-panel {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 1200px;
+            min-height: 150px;
+            background: rgba(20, 20, 35, 0.95);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 107, 157, 0.4);
+            border-radius: 25px;
+            padding: 30px 40px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.7),
+                        0 0 30px rgba(255, 107, 157, 0.3);
+            animation: slideInUp 1s ease-out;
+        }
+
+        .action-label {
+            font-size: 18px;
+            color: #ff6b9d;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: 600;
+        }
+
+        .action-text {
+            font-size: 32px;
+            color: #ffffff;
+            line-height: 1.4;
+            font-weight: 500;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(255, 23, 68, 0.8);
+            }
+            50% {
+                box-shadow: 0 0 30px rgba(255, 23, 68, 1);
+            }
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 20px rgba(255, 107, 157, 0.5);
+            }
+            to {
+                text-shadow: 0 0 40px rgba(255, 107, 157, 0.8),
+                             0 0 60px rgba(255, 107, 157, 0.4);
+            }
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Effet de nouvelle action */
+        .action-text.new-action {
+            animation: fadeIn 0.8s ease-out, highlight 1s ease-out;
+        }
+
+        @keyframes highlight {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+                color: #ffd700;
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay-container">
+        <!-- En-tête -->
+        <div class="header">
+            <div class="title">🗡️ L'IA SURVIVANTE 🛡️</div>
+            <div class="subtitle">Aventure Interactive TikTok Live</div>
+        </div>
+
+        <!-- Panel de stats (gauche) -->
+        <div class="stats-panel">
+            <div class="stat-row">
+                <div class="stat-label">💚 Points de Vie</div>
+                <div class="hp-bar-container">
+                    <div class="hp-bar" id="hpBar" style="width: 100%;"></div>
+                    <div class="hp-text" id="hpText">100/100</div>
+                </div>
+            </div>
+
+            <div class="stat-row">
+                <div class="stat-label">✨ Expérience</div>
+                <div class="xp-bar-container">
+                    <div class="xp-bar" id="xpBar" style="width: 0%;"></div>
+                    <div class="xp-text" id="xpText">0/100</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Badge de niveau (droite) -->
+        <div class="level-badge">
+            <div class="level-label">NIVEAU</div>
+            <div class="level-number" id="levelNumber">1</div>
+        </div>
+
+        <!-- Inventaire -->
+        <div class="inventory">
+            <div class="inventory-title">🎒 Inventaire</div>
+            <div class="inventory-items" id="inventoryItems">
+                <div class="inventory-item">Vide</div>
+            </div>
+        </div>
+
+        <!-- Dernière action (bas) -->
+        <div class="action-panel">
+            <div class="action-label">💬 Dernière Action</div>
+            <div class="action-text" id="actionText">
+                🎮 L'aventure commence ! En attente des viewers...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const UPDATE_INTERVAL = 500; // Mise à jour toutes les 500ms
+        const JSON_FILE = 'obs_files/game_state.json';
+
+        let lastAction = '';
+
+        // Fonction pour charger les données
+        async function loadGameState() {
+            try {
+                const response = await fetch(JSON_FILE + '?t=' + Date.now());
+                const data = await response.json();
+                updateUI(data);
+            } catch (error) {
+                console.error('Erreur de chargement:', error);
+            }
+        }
+
+        // Mise à jour de l'interface
+        function updateUI(data) {
+            // HP
+            const hpPercent = (data.hp / data.max_hp) * 100;
+            document.getElementById('hpBar').style.width = hpPercent + '%';
+            document.getElementById('hpText').textContent = `${data.hp}/${data.max_hp}`;
+
+            // XP
+            const xpPercent = (data.xp / data.xp_for_next_level) * 100;
+            document.getElementById('xpBar').style.width = xpPercent + '%';
+            document.getElementById('xpText').textContent = `${data.xp}/${data.xp_for_next_level}`;
+
+            // Niveau
+            document.getElementById('levelNumber').textContent = data.level;
+
+            // Inventaire
+            const inventoryEl = document.getElementById('inventoryItems');
+            if (data.inventory && data.inventory.length > 0) {
+                inventoryEl.innerHTML = data.inventory
+                    .slice(-3) // Les 3 derniers items
+                    .map(item => `<div class="inventory-item">${item}</div>`)
+                    .join('');
+            } else {
+                inventoryEl.innerHTML = '<div class="inventory-item">Vide</div>';
+            }
+
+            // Dernière action (avec animation si changement)
+            const actionEl = document.getElementById('actionText');
+            if (data.last_action && data.last_action !== lastAction) {
+                actionEl.classList.remove('new-action');
+                // Force reflow
+                void actionEl.offsetWidth;
+                actionEl.classList.add('new-action');
+                actionEl.textContent = data.last_action;
+                lastAction = data.last_action;
+            }
+        }
+
+        // Démarrer les mises à jour automatiques
+        setInterval(loadGameState, UPDATE_INTERVAL);
+        
+        // Première charge
+        loadGameState();
+    </script>
+</body>
+</html>

@@ -6,6 +6,7 @@ Gère les stats du personnage et l'intégration avec l'API Google Gemini
 import asyncio
 import time
 import os
+import json
 from typing import Optional
 from google import genai
 from google.genai import types
@@ -144,6 +145,7 @@ class GameEngine:
         """Écrit les stats dans le fichier OBS"""
         with open(GameConfig.OBS_STATS_FILE, "w", encoding="utf-8") as f:
             f.write(self.character.get_stats_text())
+        self._write_json_state()
     
     def _write_action(self, action: str):
         """
@@ -154,6 +156,28 @@ class GameEngine:
         """
         with open(GameConfig.OBS_LAST_ACTION_FILE, "w", encoding="utf-8") as f:
             f.write(action)
+        self._write_json_state(action)
+    
+    def _write_json_state(self, last_action: str = None):
+        """
+        Écrit l'état du jeu en JSON pour l'overlay HTML
+        
+        Args:
+            last_action: Dernière action à inclure (optionnel)
+        """
+        state = {
+            "hp": self.character.hp,
+            "max_hp": self.character.max_hp,
+            "xp": self.character.xp,
+            "xp_for_next_level": GameConfig.XP_PER_LEVEL,
+            "level": self.character.level,
+            "inventory": self.character.inventory.copy(),
+            "last_action": last_action if last_action else "🎮 En attente d'événements..."
+        }
+        
+        json_file = "obs_files/game_state.json"
+        with open(json_file, "w", encoding="utf-8") as f:
+            json.dump(state, f, ensure_ascii=False, indent=2)
     
     async def _process_api_queue(self):
         """Traite la file d'attente des appels API avec cooldown"""
@@ -198,23 +222,18 @@ class GameEngine:
             Réponse générée par l'IA
         """
         try:
-            # Créer le contenu avec le system prompt et le user prompt
-            contents = [
-                types.Content(
-                    role="system",
-                    parts=[types.Part(text=SYSTEM_PROMPT)]
-                ),
-                types.Content(
-                    role="user",
-                    parts=[types.Part(text=prompt)]
-                )
-            ]
+            # Créer la configuration avec system instruction
+            config = types.GenerateContentConfig(
+                system_instruction=SYSTEM_PROMPT,
+                temperature=1.0
+            )
             
             # Générer la réponse avec la nouvelle API
             response = await asyncio.to_thread(
                 self.client.models.generate_content,
                 model=GEMINI_MODEL,
-                contents=contents
+                contents=prompt,
+                config=config
             )
             
             return response.text.strip()
