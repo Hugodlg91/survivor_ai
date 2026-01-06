@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1920, height=1080">
     <title>L'IA Survivante - Overlay</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -28,346 +29,7 @@
             padding: 2vw;
         }
 
-        /* En-tête avec titre */
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            animation: fadeInDown 1s ease-out;
-        }
-
-        .title {
-            font-size: clamp(32px, 4vw, 72px);
-            font-weight: 900;
-            background: linear-gradient(135deg, #ff6b9d 0%, #ffa06b 50%, #ffd56b 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0 0 40px rgba(255, 107, 157, 0.5);
-            letter-spacing: 4px;
-            animation: glow 2s ease-in-out infinite alternate;
-        }
-
-        .subtitle {
-            font-size: clamp(14px, 1.5vw, 24px);
-            color: #ffa06b;
-            margin-top: 0.5vw;
-            opacity: 0.8;
-        }
-
-        /* Zone des stats (gauche) */
-        .stats-panel {
-            position: absolute;
-            top: 12vh;
-            left: 2vw;
-            width: min(450px, 25vw);
-            background: rgba(20, 20, 35, 0.92);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 107, 157, 0.3);
-            border-radius: 1vw;
-            padding: 1.5vw;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5),
-                0 0 20px rgba(255, 107, 157, 0.2);
-            animation: slideInLeft 1s ease-out;
-        }
-
-        .stat-row {
-            margin-bottom: 25px;
-        }
-
-        .stat-label {
-            font-size: 18px;
-            color: #ccc;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        /* Barre de HP */
-        .hp-bar-container {
-            position: relative;
-            width: 100%;
-            height: 40px;
-            background: rgba(0, 0, 0, 0.5);
-            border-radius: 20px;
-            overflow: hidden;
-            border: 2px solid rgba(255, 50, 100, 0.5);
-        }
-
-        .hp-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #ff1744 0%, #ff6b9d 100%);
-            border-radius: 20px;
-            transition: width 0.5s ease;
-            position: relative;
-            box-shadow: 0 0 20px rgba(255, 23, 68, 0.8);
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-
-        .hp-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 20px;
-            font-weight: bold;
-            color: white;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-            z-index: 10;
-        }
-
-        /* Barre de XP */
-        .xp-bar-container {
-            position: relative;
-            width: 100%;
-            height: 30px;
-            background: rgba(0, 0, 0, 0.5);
-            border-radius: 15px;
-            overflow: hidden;
-            border: 2px solid rgba(100, 200, 255, 0.5);
-        }
-
-        .xp-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #00d4ff 0%, #64b5f6 100%);
-            border-radius: 15px;
-            transition: width 0.5s ease;
-            position: relative;
-            box-shadow: 0 0 15px rgba(0, 212, 255, 0.8);
-        }
-
-        .xp-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 16px;
-            font-weight: bold;
-            color: white;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-            z-index: 10;
-        }
-
-        /* Badge de niveau */
-        .level-badge {
-            position: absolute;
-            top: 12vh;
-            right: 2vw;
-            width: min(200px, 12vw);
-            height: min(200px, 12vw);
-            background: linear-gradient(135deg, #ffd700 0%, #ffaf00 100%);
-            border-radius: 50%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 10px 40px rgba(255, 215, 0, 0.5),
-                0 0 30px rgba(255, 215, 0, 0.3);
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            animation: slideInRight 1s ease-out, rotate 20s linear infinite;
-        }
-
-        .level-label {
-            font-size: 20px;
-            color: rgba(0, 0, 0, 0.7);
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        .level-number {
-            font-size: clamp(40px, 5vw, 80px);
-            font-weight: 900;
-            color: rgba(0, 0, 0, 0.9);
-            line-height: 1;
-        }
-
-        /* Inventaire */
-        .inventory {
-            position: absolute;
-            top: 420px;
-            left: 40px;
-            width: 450px;
-            background: rgba(20, 20, 35, 0.92);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 170, 107, 0.3);
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-            animation: slideInLeft 1.2s ease-out;
-        }
-
-        .inventory-title {
-            font-size: 20px;
-            color: #ffa06b;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .inventory-items {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .inventory-item {
-            background: rgba(255, 170, 107, 0.2);
-            padding: 12px 20px;
-            border-radius: 10px;
-            font-size: 16px;
-            color: #ffa06b;
-            border: 1px solid rgba(255, 170, 107, 0.4);
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        /* Dernière action (centre-bas) */
-        .action-panel {
-            position: absolute;
-            bottom: 4vh;
-            left: 50%;
-            transform: translateX(-50%);
-            width: min(1200px, 80vw);
-            min-height: clamp(100px, 10vh, 150px);
-            background: rgba(20, 20, 35, 0.95);
-            backdrop-filter: blur(15px);
-            border: 2px solid rgba(255, 107, 157, 0.4);
-            border-radius: 1.5vw;
-            padding: 1.5vw 2vw;
-            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.7),
-                0 0 30px rgba(255, 107, 157, 0.3);
-            animation: slideInUp 1s ease-out;
-        }
-
-        .action-label {
-            font-size: 18px;
-            color: #ff6b9d;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            font-weight: 600;
-        }
-
-        .action-text {
-            font-size: clamp(20px, 2vw, 32px);
-            color: #ffffff;
-            line-height: 1.4;
-            font-weight: 500;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-            animation: fadeIn 0.8s ease-out;
-        }
-
-        /* Animations */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
-        }
-
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-50px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes slideInLeft {
-            from {
-                opacity: 0;
-                transform: translateX(-100px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        @keyframes slideInRight {
-            from {
-                opacity: 0;
-                transform: translateX(100px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        @keyframes slideInUp {
-            from {
-                opacity: 0;
-                transform: translateX(-50%) translateY(100px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateX(-50%) translateY(0);
-            }
-        }
-
-        @keyframes pulse {
-
-            0%,
-            100% {
-                box-shadow: 0 0 20px rgba(255, 23, 68, 0.8);
-            }
-
-            50% {
-                box-shadow: 0 0 30px rgba(255, 23, 68, 1);
-            }
-        }
-
-        @keyframes glow {
-            from {
-                text-shadow: 0 0 20px rgba(255, 107, 157, 0.5);
-            }
-
-            to {
-                text-shadow: 0 0 40px rgba(255, 107, 157, 0.8),
-                    0 0 60px rgba(255, 107, 157, 0.4);
-            }
-        }
-
-        @keyframes rotate {
-            from {
-                transform: rotate(0deg);
-            }
-
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* Effet de nouvelle action */
-        .action-text.new-action {
-            animation: fadeIn 0.8s ease-out, highlight 1s ease-out;
-        }
-
-        @keyframes highlight {
-            0% {
-                transform: scale(1);
-            }
-
-            50% {
-                transform: scale(1.05);
-                color: #ffd700;
-            }
-
-            100% {
-                transform: scale(1);
-            }
-        }
-
-        /* Animation de tremblement (screen shake) */
+        /* Animations Globales */
         @keyframes shake {
             0% {
                 transform: translate(1px, 1px) rotate(0deg);
@@ -416,17 +78,18 @@
 
         .shake-effect {
             animation: shake 0.5s;
+            box-shadow: inset 0 0 50px rgba(255, 0, 0, 0.5);
+            /* Effet rouge sang */
         }
 
-        /* Texte flottant (floating damage/heal numbers) */
         .floating-text {
             position: absolute;
-            font-weight: bold;
+            font-weight: 900;
             font-size: 32px;
             pointer-events: none;
             animation: floatUp 1.5s ease-out forwards;
-            text-shadow: 0 0 10px black, 0 0 20px black;
-            z-index: 9999;
+            text-shadow: 2px 2px 0px #000;
+            z-index: 1000;
         }
 
         @keyframes floatUp {
@@ -440,78 +103,291 @@
                 transform: translateY(-80px) scale(1.5);
             }
         }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .title {
+            font-size: clamp(32px, 4vw, 72px);
+            font-weight: 900;
+            background: linear-gradient(135deg, #ff6b9d 0%, #ffa06b 50%, #ffd56b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 40px rgba(255, 107, 157, 0.5);
+            animation: glow 2s infinite alternate;
+        }
+
+        .subtitle {
+            font-size: clamp(14px, 1.5vw, 24px);
+            color: #ffa06b;
+            opacity: 0.8;
+        }
+
+        /* Stats Panel */
+        .stats-panel {
+            position: absolute;
+            top: 12vh;
+            left: 2vw;
+            width: min(450px, 25vw);
+            background: rgba(20, 20, 35, 0.92);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 107, 157, 0.3);
+            border-radius: 1vw;
+            padding: 1.5vw;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            transition: transform 0.2s;
+        }
+
+        .stat-row {
+            margin-bottom: 25px;
+        }
+
+        .stat-label {
+            font-size: 18px;
+            color: #ccc;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Barres */
+        .hp-bar-container,
+        .xp-bar-container {
+            position: relative;
+            width: 100%;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .hp-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ff1744 0%, #ff6b9d 100%);
+            border-radius: 20px;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 20px rgba(255, 23, 68, 0.8);
+        }
+
+        .xp-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff 0%, #64b5f6 100%);
+            border-radius: 15px;
+            transition: width 0.5s ease;
+        }
+
+        .bar-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px black;
+            z-index: 10;
+        }
+
+        /* Badge Niveau */
+        .level-badge {
+            position: absolute;
+            top: 12vh;
+            right: 2vw;
+            width: min(200px, 12vw);
+            height: min(200px, 12vw);
+            background: linear-gradient(135deg, #ffd700 0%, #ffaf00 100%);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+        }
+
+        .level-number {
+            font-size: clamp(40px, 5vw, 80px);
+            font-weight: 900;
+            color: rgba(0, 0, 0, 0.8);
+            line-height: 1;
+        }
+
+        /* Inventaire */
+        .inventory {
+            position: absolute;
+            top: 450px;
+            left: 2vw;
+            width: min(450px, 25vw);
+            background: rgba(20, 20, 35, 0.92);
+            border: 2px solid rgba(255, 170, 107, 0.3);
+            border-radius: 20px;
+            padding: 20px;
+        }
+
+        .inventory-items {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .inventory-item {
+            background: rgba(255, 170, 107, 0.2);
+            padding: 8px 15px;
+            border-radius: 10px;
+            color: #ffa06b;
+            border: 1px solid rgba(255, 170, 107, 0.4);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Action Panel */
+        .action-panel {
+            position: absolute;
+            bottom: 5vh;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(1200px, 80vw);
+            background: rgba(20, 20, 35, 0.95);
+            border: 2px solid rgba(255, 107, 157, 0.4);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .action-text {
+            font-size: clamp(20px, 2.5vw, 36px);
+            color: white;
+            font-weight: 600;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Keyframes utilitaires */
+        @keyframes popIn {
+            from {
+                transform: scale(0);
+            }
+
+            to {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 20px rgba(255, 107, 157, 0.5);
+            }
+
+            to {
+                text-shadow: 0 0 40px rgba(255, 107, 157, 0.8);
+            }
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes highlight {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+                color: #ffd700;
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .new-action {
+            animation: highlight 0.5s ease-out;
+        }
     </style>
 </head>
 
 <body>
     <div class="overlay-container">
-        <!-- En-tête -->
         <div class="header">
             <div class="title">🗡️ L'IA SURVIVANTE 🛡️</div>
             <div class="subtitle">Aventure Interactive TikTok Live</div>
         </div>
 
-        <!-- Panel de stats (gauche) -->
-        <div class="stats-panel">
+        <div class="stats-panel" id="statsPanel">
             <div class="stat-row">
                 <div class="stat-label">💚 Points de Vie</div>
                 <div class="hp-bar-container">
                     <div class="hp-bar" id="hpBar" style="width: 100%;"></div>
-                    <div class="hp-text" id="hpText">100/100</div>
+                    <div class="bar-text" id="hpText">100/100</div>
                 </div>
             </div>
-
             <div class="stat-row">
                 <div class="stat-label">✨ Expérience</div>
                 <div class="xp-bar-container">
                     <div class="xp-bar" id="xpBar" style="width: 0%;"></div>
-                    <div class="xp-text" id="xpText">0/100</div>
+                    <div class="bar-text" id="xpText">0/100</div>
                 </div>
             </div>
         </div>
 
-        <!-- Badge de niveau (droite) -->
         <div class="level-badge">
-            <div class="level-label">NIVEAU</div>
+            <div class="stat-label" style="font-size: 14px; margin-bottom: 0;">NIVEAU</div>
             <div class="level-number" id="levelNumber">1</div>
         </div>
 
-        <!-- Inventaire -->
         <div class="inventory">
-            <div class="inventory-title">🎒 Inventaire</div>
+            <div class="stat-label">🎒 Inventaire</div>
             <div class="inventory-items" id="inventoryItems">
                 <div class="inventory-item">Vide</div>
             </div>
         </div>
 
-        <!-- Dernière action (bas) -->
         <div class="action-panel">
-            <div class="action-label">💬 Dernière Action</div>
-            <div class="action-text" id="actionText">
-                🎮 L'aventure commence ! En attente des viewers...
-            </div>
+            <div class="stat-label" style="color: #ff6b9d;">💬 Dernière Action</div>
+            <div class="action-text" id="actionText">En attente...</div>
         </div>
     </div>
 
-    <!-- Confetti Library -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
     <script>
-        // Configuration
-        const UPDATE_INTERVAL = 500; // Mise à jour toutes les 500ms
+        const UPDATE_INTERVAL = 500;
         const JSON_FILE = 'obs_files/game_state.json';
 
-        // État précédent pour comparaison et détection de changements
-        let lastState = {
-            hp: 100,
-            max_hp: 100,
-            xp: 0,
-            level: 1,
-            inventory: [],
-            last_action: ''
-        };
+        // État précédent pour détecter les changements (Dégâts, Level Up...)
+        let lastState = { hp: 100, level: 1, inventory: [], last_action: '' };
 
-        // Fonction utilitaire pour créer des textes flottants (+HP / -HP)
         function spawnFloatingText(text, x, y, color) {
             const el = document.createElement('div');
             el.className = 'floating-text';
@@ -523,105 +399,74 @@
             setTimeout(() => el.remove(), 1500);
         }
 
-        // Fonction pour charger les données
         async function loadGameState() {
             try {
                 const response = await fetch(JSON_FILE + '?t=' + Date.now());
                 const data = await response.json();
                 updateUI(data);
-            } catch (error) {
-                console.error('Erreur de chargement:', error);
-            }
+            } catch (error) { console.error('Erreur chargement JSON:', error); }
         }
 
-        // Mise à jour de l'interface avec effets visuels
         function updateUI(data) {
-            // 1. GESTION HP (Dégâts et Soins) + EFFETS VISUELS
+            const statsPanel = document.getElementById('statsPanel');
+            const hpBarRect = document.getElementById('hpBar').getBoundingClientRect();
+
+            // 1. GESTION DES HP (Dégâts / Soins)
             if (data.hp !== lastState.hp) {
                 const diff = data.hp - lastState.hp;
-                const hpBar = document.getElementById('hpBar');
-                const barRect = hpBar.getBoundingClientRect();
+                // Position du texte flottant : au bout de la barre de vie actuelle
+                const floatX = hpBarRect.left + (hpBarRect.width * (data.hp / data.max_hp));
+                const floatY = hpBarRect.top - 30;
 
                 if (diff < 0) {
-                    // DÉGÂTS : Shake + Texte Rouge
+                    // Dégâts : Tremblement + Texte Rouge
                     document.body.classList.add('shake-effect');
                     setTimeout(() => document.body.classList.remove('shake-effect'), 500);
-                    spawnFloatingText(diff.toString(), barRect.left + barRect.width / 2, barRect.top - 20, '#ff1744');
-                } else if (diff > 0) {
-                    // SOIN : Texte Vert
-                    spawnFloatingText('+' + diff, barRect.left + barRect.width / 2, barRect.top - 20, '#00e676');
+                    spawnFloatingText(diff, floatX, floatY, '#ff1744'); // Rouge
+                } else {
+                    // Soin : Texte Vert
+                    spawnFloatingText('+' + diff, floatX, floatY, '#00e676'); // Vert
                 }
             }
-
-            // Mise à jour visuelle barre HP
-            const hpPercent = (data.hp / data.max_hp) * 100;
-            document.getElementById('hpBar').style.width = hpPercent + '%';
+            // Mise à jour visuelle HP
+            document.getElementById('hpBar').style.width = (data.hp / data.max_hp * 100) + '%';
             document.getElementById('hpText').textContent = `${data.hp}/${data.max_hp}`;
 
-            // 2. GESTION XP
-            const xpPercent = (data.xp / data.xp_for_next_level) * 100;
-            document.getElementById('xpBar').style.width = xpPercent + '%';
-            document.getElementById('xpText').textContent = `${data.xp}/${data.xp_for_next_level}`;
-
-            // 3. LEVEL UP : CONFETTIS + ANIMATION BADGE
+            // 2. GESTION LEVEL UP
             if (data.level > lastState.level) {
-                // 🎉 CONFETTIS !
-                confetti({
-                    particleCount: 150,
-                    spread: 70,
-                    origin: { y: 0.6 },
-                    colors: ['#ffd700', '#ffaf00', '#ff6b9d', '#00d4ff']
-                });
-
-                // Animation du badge de niveau
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } }); // Explosion de confettis
                 const badge = document.querySelector('.level-badge');
-                badge.style.transform = "scale(1.3)";
-                badge.style.transition = "transform 0.3s ease";
-                setTimeout(() => {
-                    badge.style.transform = "scale(1)";
-                }, 500);
+                badge.style.transform = "scale(1.5) rotate(360deg)";
+                setTimeout(() => badge.style.transform = "", 1000);
             }
             document.getElementById('levelNumber').textContent = data.level;
 
-            // 4. INVENTAIRE - Ne mettre à jour QUE si changé (anti-clignotement)
-            const inventoryChanged = JSON.stringify(data.inventory) !== JSON.stringify(lastState.inventory);
-            if (inventoryChanged) {
-                const inventoryEl = document.getElementById('inventoryItems');
-                if (data.inventory && data.inventory.length > 0) {
-                    inventoryEl.innerHTML = data.inventory
-                        .slice(-3) // Les 3 derniers items
-                        .map(item => `<div class="inventory-item">🎁 ${item}</div>`)
-                        .join('');
-                } else {
-                    inventoryEl.innerHTML = '<div class="inventory-item">Vide</div>';
-                }
+            // Mise à jour XP
+            document.getElementById('xpBar').style.width = (data.xp / data.xp_for_next_level * 100) + '%';
+            document.getElementById('xpText').textContent = `${data.xp}/${data.xp_for_next_level}`;
+
+            // 3. INVENTAIRE
+            if (JSON.stringify(data.inventory) !== JSON.stringify(lastState.inventory)) {
+                const invEl = document.getElementById('inventoryItems');
+                invEl.innerHTML = data.inventory.length ?
+                    data.inventory.slice(-4).map(i => `<div class="inventory-item">🎁 ${i}</div>`).join('') :
+                    '<div class="inventory-item">Vide</div>';
             }
 
-            // 5. DERNIÈRE ACTION (avec animation si changement)
+            // 4. ACTION
             const actionEl = document.getElementById('actionText');
             if (data.last_action && data.last_action !== lastState.last_action) {
                 actionEl.classList.remove('new-action');
-                // Force reflow
-                void actionEl.offsetWidth;
+                void actionEl.offsetWidth; // Force reflow
                 actionEl.classList.add('new-action');
                 actionEl.textContent = data.last_action;
             }
 
-            // Sauvegarde de l'état pour la prochaine boucle
-            lastState = {
-                hp: data.hp,
-                max_hp: data.max_hp,
-                xp: data.xp,
-                level: data.level,
-                inventory: [...data.inventory],
-                last_action: data.last_action
-            };
+            // Sauvegarde de l'état
+            lastState = { ...data, inventory: [...data.inventory] };
         }
 
-        // Démarrer les mises à jour automatiques
         setInterval(loadGameState, UPDATE_INTERVAL);
-
-        // Première charge
         loadGameState();
     </script>
 </body>

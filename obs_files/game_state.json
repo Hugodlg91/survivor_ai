@@ -1,16 +1,16 @@
 {
   "hp": 130,
   "max_hp": 130,
-  "xp": 65,
+  "xp": 20,
   "xp_for_next_level": 100,
   "level": 4,
   "inventory": [
     "Rose",
-    "Heart",
-    "Lion",
-    "Rose",
+    "Football",
+    "Football",
+    "Perfume",
     "Lion",
     "Drama Queen"
   ],
-  "last_action": "Merci beaucoup @StreamHero pour cette Drama Queen incroyable ! Je l'utilise pour détruire un mur de pierre brutale, ouvrant une nouvelle porte vers l'abîme... 120 XP, c'est le niveau 4 !"
+  "last_action": "\"Merci à @MegaFan pour ce cadeau incroyable ! Je suis désormais protégé par un lion spirituel qui va me défendre contre tout mon chemin ! 🦁🔥\"\n\n(Je ferme les yeux, je respire profondément et je sens la puissance du lion spirituel prendre possession de moi)"
 }
