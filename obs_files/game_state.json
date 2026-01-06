@@ -1,13 +1,14 @@
 {
   "hp": 100,
   "max_hp": 100,
-  "xp": 35,
+  "xp": 60,
   "xp_for_next_level": 100,
   "level": 1,
   "inventory": [
     "Rose",
     "Heart",
-    "Rose"
+    "Rose",
+    "Football"
   ],
-  "last_action": "Merci beaucoup @TikTokHero ! Je transforme l'énergie du cœur en bouclier d'énergie qui me protège des dangers à venir. +15 XP, je suis prêt pour le prochain défi !\n\n+2 HP"
+  "last_action": "🎮 En attente d'événements..."
 }
