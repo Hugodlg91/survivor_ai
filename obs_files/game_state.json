@@ -1,19 +1,15 @@
 {
-  "hp": 110,
-  "max_hp": 110,
-  "xp": 93,
+  "hp": 25,
+  "max_hp": 100,
+  "xp": 0,
   "xp_for_next_level": 100,
-  "level": 2,
-  "inventory": [
-    "Rose",
-    "Finger Heart",
-    "Swan",
-    "Heart",
-    "Lion"
-  ],
-  "last_action": "\"Merci @StreamFan pour ce cœur sacré ! Je le transforme en bouclier d'énergie contre Ténèbre Morte. Je me sens prêt à affronter cette tenebreuse créature !\"",
+  "level": 1,
+  "recent_items": [],
+  "last_action": "🎮 En attente d'événements...",
+  "total_likes": 0,
+  "likes_to_next_milestone": 100,
   "monster": {
-    "name": "Ténèbre Morte",
+    "name": "Khra'gixx",
     "hp": 120,
     "max_hp": 120,
     "is_alive": true

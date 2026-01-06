@@ -23,7 +23,7 @@ class Character:
         self.max_hp = GameConfig.MAX_HP
         self.level = GameConfig.STARTING_LEVEL
         self.xp = GameConfig.STARTING_XP
-        self.inventory = []
+        self.recent_items = []  # Last 3 items used (for display only)
         
     def add_hp(self, amount: int) -> int:
         """
@@ -79,18 +79,18 @@ class Character:
         self.max_hp += 10
         self.hp = self.max_hp
     
-    def add_to_inventory(self, item: str):
+    def add_consumed_item(self, item: str):
         """
-        Ajoute un objet à l'inventaire
+        Enregistre un objet consommé (pour affichage uniquement)
         
         Args:
-            item: Nom de l'objet
+            item: Nom de l'objet consommé
         """
-        self.inventory.append(item)
+        self.recent_items.append(item)
         
-        # Limiter la taille de l'inventaire pour éviter la surcharge
-        if len(self.inventory) > 10:
-            self.inventory.pop(0)
+        # Garder seulement les 3 derniers objets pour l'affichage
+        if len(self.recent_items) > 3:
+            self.recent_items.pop(0)
     
     def get_stats_text(self) -> str:
         """
@@ -112,7 +112,7 @@ class Character:
 ⭐ Niveau: {self.level}
 ✨ XP: {xp_progress}
 
-🎒 Derniers objets: {', '.join(self.inventory[-3:]) if self.inventory else 'Vide'}
+🎒 Derniers objets utilisés: {', '.join(str(item) for item in self.recent_items[-3:]) if self.recent_items else 'Aucun'}
 """
 
 
@@ -130,6 +130,12 @@ class GameEngine:
         self.current_monster_name = None
         self.current_monster_hp = 0
         self.current_monster_max_hp = 100
+        
+        # Like Milestone System
+        self.total_likes = 0  # Total likes accumulated for milestone damage
+        
+        # Monster Attack System
+        self.last_monster_attack = time.time()  # Track last auto-attack time
         
         # Ollama ne nécessite pas de configuration spéciale
         # L'API locale est toujours disponible
@@ -172,8 +178,11 @@ class GameEngine:
             "xp": self.character.xp,
             "xp_for_next_level": GameConfig.XP_PER_LEVEL,
             "level": self.character.level,
-            "inventory": self.character.inventory.copy(),
+            "recent_items": self.character.recent_items.copy(),
             "last_action": last_action if last_action else "🎮 En attente d'événements...",
+            # Like Milestone Data
+            "total_likes": self.total_likes,
+            "likes_to_next_milestone": 100 - (self.total_likes % 100),
             # Monster Data
             "monster": {
                 "name": self.current_monster_name,
@@ -186,6 +195,23 @@ class GameEngine:
         json_file = "obs_files/game_state.json"
         with open(json_file, "w", encoding="utf-8") as f:
             json.dump(state, f, ensure_ascii=False, indent=2)
+    
+    async def _monster_attack_loop(self):
+        """Boucle d'attaques automatiques du monstre"""
+        while self.is_running:
+            await asyncio.sleep(GameConfig.MONSTER_ATTACK_INTERVAL)
+            
+            # Attaquer seulement si un monstre est vivant
+            if self.current_monster_hp > 0:
+                damage = GameConfig.MONSTER_ATTACK_DAMAGE
+                is_alive = self.character.remove_hp(damage)
+                self._write_stats()
+                
+                print(f"💀 {self.current_monster_name} attaque ! -{damage} HP")
+                
+                if not is_alive:
+                    print("💀 GAME OVER ! Le joueur est mort...")
+                    # Optionnel: arrêter le jeu ou notifier
     
     async def _process_api_queue(self):
         """Traite la file d'attente des appels API avec cooldown"""
@@ -340,7 +366,7 @@ class GameEngine:
         # Appliquer les effets
         hp_gained = self.character.add_hp(gift_info["hp"])
         leveled_up = self.character.add_xp(gift_info["xp"])
-        self.character.add_to_inventory(gift_name)
+        self.character.add_consumed_item(gift_name)
         
         # Mettre à jour les stats OBS
         self._write_stats()
@@ -360,19 +386,29 @@ Réponds en 1-2 phrases maximum. Remercie @{username} et décris brièvement ton
     
     async def handle_like(self, count: int = 1):
         """
-        Gère des likes (soin passif + dégâts monstre)
+        Gère des likes (soin passif + dégâts monstre par paliers)
         
         Args:
             count: Nombre de likes reçus
         """
-        # Soin joueur
+        # Soin joueur (inchangé)
         total_heal = GameConfig.LIKE_HEAL_AMOUNT * count
         hp_gained = self.character.add_hp(total_heal)
         
-        # Dégâts monstre
-        if self.current_monster_hp > 0:
-            damage = GameConfig.DAMAGE_PER_LIKE * count
+        # Système de paliers pour les dégâts monstre
+        old_total = self.total_likes
+        self.total_likes += count
+        
+        # Calculer combien de paliers de 100 ont été franchis
+        old_milestone = old_total // 100
+        new_milestone = self.total_likes // 100
+        
+        # Si on a franchi au moins un palier
+        if new_milestone > old_milestone and self.current_monster_hp > 0:
+            milestones_crossed = new_milestone - old_milestone
+            damage = 10 * milestones_crossed
             await self.damage_monster(damage)
+            print(f"🎯 Palier franchi ! {milestones_crossed} x 100 likes = -{damage} HP au monstre")
         
         # Update si changement
         if hp_gained > 0 or self.current_monster_hp > 0:
@@ -405,8 +441,11 @@ Réagis avec enthousiasme en 1-2 phrases."""
         print("✅ Moteur de jeu démarré")
         print(f"📊 Stats initiales: {self.character.hp} HP, Niveau {self.character.level}")
         
-        # Lancer le worker de la queue API
-        await self._process_api_queue()
+        # Lancer les workers asynchrones en parallèle
+        await asyncio.gather(
+            self._process_api_queue(),
+            self._monster_attack_loop()
+        )
     
     def stop(self):
         """Arrête le moteur de jeu"""

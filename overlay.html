@@ -361,7 +361,7 @@
         .monster-sprite {
             position: absolute;
             right: 36%;
-            bottom: 1%;
+            bottom: 3%;
             width: 400px;
             height: 400px;
             display: flex;
@@ -465,6 +465,43 @@
             text-shadow: 1px 1px 2px black;
             z-index: 10;
         }
+
+        /* Rules Panel */
+        .rules-panel {
+            position: absolute;
+            top: 32vh;
+            right: 2vw;
+            width: min(400px, 22vw);
+            background: rgba(20, 20, 35, 0.9);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 170, 107, 0.3);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .rules-title {
+            font-size: 20px;
+            font-weight: 900;
+            color: #ffa06b;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .rule-item {
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: #ccc;
+            line-height: 1.6;
+            padding-left: 5px;
+        }
+
+        .rule-item strong {
+            color: #ffa06b;
+            font-weight: bold;
+        }
     </style>
 </head>
 
@@ -492,10 +529,19 @@
             <div class="level-number" id="levelNumber">1</div>
         </div>
 
+        <div class="rules-panel">
+            <div class="rules-title">📜 Comment Jouer</div>
+            <div class="rule-item">❤️ <strong>Likes:</strong> Soignent le joueur (+1 HP) et infligent 10 dégâts au
+                monstre tous les 100 likes</div>
+            <div class="rule-item">🎁 <strong>Cadeaux:</strong> Déclenchent des attaques spéciales et donnent de l'XP
+            </div>
+            <div class="rule-item">🎯 <strong>Objectif:</strong> Survivre, tuer les monstres et monter de niveau !</div>
+        </div>
+
         <div class="inventory">
-            <div class="stat-label">🎒 Inventaire</div>
+            <div class="stat-label">🎒 Derniers Objets Utilisés</div>
             <div class="inventory-items" id="inventoryItems">
-                <div class="inventory-item">Vide</div>
+                <div class="inventory-item">Aucun</div>
             </div>
         </div>
 
@@ -526,7 +572,7 @@
     <script>
         const UPDATE_INTERVAL = 500;
         const JSON_FILE = 'obs_files/game_state.json';
-        let lastState = { hp: 100, level: 1, inventory: [], last_action: '' };
+        let lastState = { hp: 100, level: 1, recent_items: [], last_action: '' };
 
         class SpriteAnimator {
             constructor(imageElement, basePath) {
@@ -649,19 +695,19 @@
             document.getElementById('xpBar').style.width = (data.xp / data.xp_for_next_level * 100) + '%';
             document.getElementById('xpText').textContent = `${data.xp}/${data.xp_for_next_level}`;
 
-            // 4. INVENTORY
+            // 4. RECENT CONSUMED ITEMS
             const inventoryContainer = document.getElementById('inventoryItems');
-            if (JSON.stringify(data.inventory) !== JSON.stringify(lastState.inventory)) {
+            if (JSON.stringify(data.recent_items) !== JSON.stringify(lastState.recent_items)) {
                 inventoryContainer.innerHTML = '';
-                data.inventory.slice(-6).forEach(item => {
+                data.recent_items.slice(-3).forEach(item => {
                     const div = document.createElement('div');
                     div.className = 'inventory-item';
                     div.textContent = item;
                     inventoryContainer.appendChild(div);
                 });
             }
-            if (data.inventory.length === 0) {
-                inventoryContainer.innerHTML = '<div class="inventory-item">Vide</div>';
+            if (data.recent_items.length === 0) {
+                inventoryContainer.innerHTML = '<div class="inventory-item">Aucun</div>';
             }
 
             // 5. ACTION TEXT
@@ -673,7 +719,26 @@
                 actionEl.textContent = data.last_action;
             }
 
-            // 6. MONSTER STATS MANAGEMENT
+
+            // 6. MONSTER HP CHANGES
+            if (data.monster && lastState.monster) {
+                if (data.monster.hp !== lastState.monster.hp) {
+                    const diff = data.monster.hp - lastState.monster.hp;
+                    const monsterHpBarRect = document.getElementById('monsterHpBar').getBoundingClientRect();
+                    const floatX = monsterHpBarRect.left + (monsterHpBarRect.width / 2);
+                    const floatY = monsterHpBarRect.top - 30;
+
+                    if (diff < 0) {
+                        // Monster took damage
+                        spawnFloatingText(diff, floatX, floatY, '#ff1744');
+                        const monsterSpriteEl = document.getElementById('monsterSprite');
+                        monsterSpriteEl.classList.add('sprite-flash');
+                        setTimeout(() => monsterSpriteEl.classList.remove('sprite-flash'), 300);
+                    }
+                }
+            }
+
+            // 7. MONSTER STATS MANAGEMENT
             const monsterStatsEl = document.getElementById('monsterStats');
             const monsterHpBar = document.getElementById('monsterHpBar');
             const monsterNameEl = document.getElementById('monsterName');
@@ -714,7 +779,7 @@
                 monsterStatsEl.style.opacity = '0';
             }
 
-            lastState = { ...data, inventory: [...data.inventory], monster: data.monster };
+            lastState = { ...data, recent_items: [...data.recent_items], monster: data.monster };
         }
 
         setInterval(loadGameState, UPDATE_INTERVAL);

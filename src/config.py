@@ -64,8 +64,11 @@ class GameConfig:
     
     # Likes
     LIKE_HEAL_AMOUNT = 1  # HP régénérés par like
-    DAMAGE_PER_LIKE = 10  # Dégâts infligés au monstre par like
     LIKE_THRESHOLD_FOR_REACTION = 50  # Réaction spéciale tous les X likes
+    
+    # Monster Attacks
+    MONSTER_ATTACK_DAMAGE = 25  # Dégâts infligés au joueur par le monstre
+    MONSTER_ATTACK_INTERVAL = 10  # Secondes entre chaque attaque
     
     # Cooldown API
     API_COOLDOWN_SECONDS = 2.0  # Temps minimum entre 2 appels API
