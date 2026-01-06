@@ -1,16 +1,13 @@
 {
-  "hp": 120,
-  "max_hp": 120,
-  "xp": 81,
+  "hp": 100,
+  "max_hp": 100,
+  "xp": 35,
   "xp_for_next_level": 100,
-  "level": 3,
+  "level": 1,
   "inventory": [
     "Rose",
-    "Finger Heart",
-    "Football",
-    "Finger Heart",
-    "Lion",
-    "Drama Queen"
+    "Heart",
+    "Rose"
   ],
-  "last_action": "Merci énormément à @MegaFan pour ce cadeau incroyable ! Je l'utilise pour invoquer le lion spirituel qui va terrasser les ennemis qui me barrent la route ! \n\n+100 XP et 0 HP, mais je suis plus forte que jamais !"
+  "last_action": "Merci beaucoup @TikTokHero ! Je transforme l'énergie du cœur en bouclier d'énergie qui me protège des dangers à venir. +15 XP, je suis prêt pour le prochain défi !\n\n+2 HP"
 }
