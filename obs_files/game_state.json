@@ -1,16 +1,16 @@
 {
-  "hp": 130,
-  "max_hp": 130,
-  "xp": 50,
+  "hp": 120,
+  "max_hp": 120,
+  "xp": 81,
   "xp_for_next_level": 100,
-  "level": 4,
+  "level": 3,
   "inventory": [
     "Rose",
-    "Swan",
-    "Perfume",
-    "Perfume",
+    "Finger Heart",
+    "Football",
+    "Finger Heart",
     "Lion",
     "Drama Queen"
   ],
-  "last_action": "\"Merci à @StreamHero pour le Drama Queen ! Je l'utilise pour détruire un mur qui empêchait mon chemin... Et voilà, je suis enfin libre ! 🎉 120 XP ! Level up ! 👏\""
+  "last_action": "Merci énormément à @MegaFan pour ce cadeau incroyable ! Je l'utilise pour invoquer le lion spirituel qui va terrasser les ennemis qui me barrent la route ! \n\n+100 XP et 0 HP, mais je suis plus forte que jamais !"
 }

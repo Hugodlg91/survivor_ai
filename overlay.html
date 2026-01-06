@@ -16,7 +16,9 @@
         body {
             width: 100vw;
             height: 100vh;
-            background: transparent;
+            background: url('assets/Background.png') no-repeat center bottom/cover;
+            /* Dark overlay for readability */
+            box-shadow: inset 0 0 0 1000px rgba(0, 0, 0, 0.4);
             font-family: 'Segoe UI', Arial, sans-serif;
             overflow: hidden;
         }
@@ -104,12 +106,12 @@
             }
         }
 
-        /* Header */
-        .header {
+        /* Header removed as per user request */
+        /* .header {
             text-align: center;
             margin-bottom: 30px;
             animation: fadeInDown 1s ease-out;
-        }
+        } */
 
         .title {
             font-size: clamp(32px, 4vw, 72px);
@@ -245,10 +247,11 @@
             animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        /* Action Panel */
+        /* Action Panel - Moved to TOP */
         .action-panel {
             position: absolute;
-            bottom: 5vh;
+            top: 5vh;
+            /* Changed from bottom to top */
             left: 50%;
             transform: translateX(-50%);
             width: min(1200px, 80vw);
@@ -257,6 +260,8 @@
             border-radius: 20px;
             padding: 20px;
             text-align: center;
+            z-index: 100;
+            /* Ensure on top of everything */
         }
 
         .action-text {
@@ -339,13 +344,13 @@
         }
 
         /* Sprites Container */
+        /* Sprites Container - Full Screen to align with background */
         .sprites-container {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 600px;
-            height: 400px;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             pointer-events: none;
             z-index: 5;
         }
@@ -353,9 +358,12 @@
         /* Knight Sprite */
         .knight-sprite {
             position: absolute;
-            left: 100px;
-            bottom: 50px;
-            width: clamp(150px, 15vw, 250px);
+            left: 38%;
+            /* Moved to center-left clearing */
+            bottom: 13%;
+            /* Aligned with grass ground */
+            width: clamp(250px, 25vw, 400px);
+            /* Increased size significantly */
             height: auto;
             image-rendering: pixelated;
             filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5));
@@ -370,18 +378,23 @@
         /* Monster Sprite */
         .monster-sprite {
             position: absolute;
-            right: 15%;
+            right: 40%;
+            /* Moved to center-right clearing */
             /* Fix position closer to right side */
-            bottom: 50px;
-            width: 150px;
+            bottom: 4%;
+            /* Aligned with grass ground */
+            width: 400px;
+            /* Increased size */
             /* Fixed width for consistency */
-            height: 150px;
+            height: 400px;
+            /* Increased size */
             display: flex;
             /* Center image in container */
             justify-content: center;
             align-items: flex-end;
             opacity: 0;
-            transform: translateX(50px);
+            transform: translateX(50px) scaleX(-1);
+            /* Flip horizontally to face left */
             transition: opacity 0.3s, transform 0.3s;
             image-rendering: pixelated;
             filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5));
@@ -391,7 +404,8 @@
 
         .monster-sprite.visible {
             opacity: 1;
-            transform: translateX(0);
+            transform: translateX(0) scaleX(-1);
+            /* Maintain flip when visible */
         }
 
         .monster-sprite img {
@@ -439,10 +453,11 @@
 
 <body>
     <div class="overlay-container">
-        <div class="header">
+        <!-- Header removed -->
+        <!-- <div class="header">
             <div class="title">🗡️ L'IA SURVIVANTE 🛡️</div>
             <div class="subtitle">Aventure Interactive TikTok Live</div>
-        </div>
+        </div> -->
 
         <div class="stats-panel" id="statsPanel">
             <div class="stat-row">
