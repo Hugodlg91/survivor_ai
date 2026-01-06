@@ -74,9 +74,8 @@ class TikTokListener:
             self.total_likes += like_count
             self.likes_since_last_milestone += like_count
             
-            # Appliquer le soin passif pour chaque like
-            for _ in range(like_count):
-                await self.game_engine.handle_like()
+            # Appliquer le soin passif et dégâts pour le lot de likes
+            await self.game_engine.handle_like(like_count)
             
             print(f"👍 @{username} a envoyé {like_count} like(s) (Total: {self.total_likes})")
             

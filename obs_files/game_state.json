@@ -1,14 +1,22 @@
 {
-  "hp": 100,
-  "max_hp": 100,
-  "xp": 60,
+  "hp": 140,
+  "max_hp": 140,
+  "xp": 30,
   "xp_for_next_level": 100,
-  "level": 1,
+  "level": 5,
   "inventory": [
     "Rose",
+    "Lion",
     "Heart",
-    "Rose",
-    "Football"
+    "Football",
+    "Lion",
+    "Drama Queen"
   ],
-  "last_action": "🎮 En attente d'événements..."
+  "last_action": "\"Woohoo, merci à @StreamHero pour ce Drama Queen ! Je l'utilise pour détruire un mur inutilement et... Khra'gixx est désolé de m'avoir attaqué !\"",
+  "monster": {
+    "name": "Khra'gixx",
+    "hp": 180,
+    "max_hp": 180,
+    "is_alive": true
+  }
 }

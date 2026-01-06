@@ -126,6 +126,11 @@ class GameEngine:
         self.api_queue = asyncio.Queue()  # File d'attente pour les requêtes
         self.is_running = False
         
+        # Monster State
+        self.current_monster_name = None
+        self.current_monster_hp = 0
+        self.current_monster_max_hp = 100
+        
         # Ollama ne nécessite pas de configuration spéciale
         # L'API locale est toujours disponible
         print(f"🤖 IA locale configurée: {OLLAMA_MODEL}")
@@ -168,7 +173,14 @@ class GameEngine:
             "xp_for_next_level": GameConfig.XP_PER_LEVEL,
             "level": self.character.level,
             "inventory": self.character.inventory.copy(),
-            "last_action": last_action if last_action else "🎮 En attente d'événements..."
+            "last_action": last_action if last_action else "🎮 En attente d'événements...",
+            # Monster Data
+            "monster": {
+                "name": self.current_monster_name,
+                "hp": self.current_monster_hp,
+                "max_hp": self.current_monster_max_hp,
+                "is_alive": self.current_monster_hp > 0
+            } if self.current_monster_name else None
         }
         
         json_file = "obs_files/game_state.json"
@@ -206,6 +218,65 @@ class GameEngine:
             except Exception as e:
                 print(f"❌ Erreur lors du traitement de la queue API: {e}")
                 await asyncio.sleep(1)
+
+    async def generate_monster_name(self):
+        """Génère un nom de monstre effrayant via Ollama"""
+        try:
+            prompt = "Donne-moi un nom court et effrayant pour un monstre de fantasy (ex: 'Le Dévoreur d'Âmes', 'Gobelin enragé'). Réponds UNIQUEMENT par le nom, sans guillemets ni intro."
+            
+            payload = {
+                "model": OLLAMA_MODEL,
+                "prompt": prompt,
+                "stream": False,
+                "options": {"temperature": 1.0}
+            }
+            
+            response = await asyncio.to_thread(
+                requests.post,
+                OLLAMA_API_URL,
+                json=payload,
+                timeout=10
+            ) 
+            
+            if response.status_code == 200:
+                name = response.json().get("response", "Monstre Inconnu").strip()
+                # Nettoyage basique
+                name = name.replace('"', '').replace('.', '')
+                self.current_monster_name = name
+            else:
+                self.current_monster_name = "Ombre Menaçante"
+                
+        except Exception as e:
+            print(f"⚠️ Erreur génération nom monstre: {e}")
+            self.current_monster_name = "La Bête"
+
+    async def spawn_monster(self):
+        """Fait apparaître un nouveau monstre si aucun n'est présent"""
+        if self.current_monster_hp > 0:
+            return # Déjà un monstre
+            
+        print("👹 Apparition d'un nouveau monstre...")
+        await self.generate_monster_name()
+        self.current_monster_max_hp = 100 + (self.character.level * 20) # Scaling
+        self.current_monster_hp = self.current_monster_max_hp
+        self._write_stats() # Update JSON
+
+    async def damage_monster(self, amount: int):
+        """Inflige des dégâts au monstre actif"""
+        if self.current_monster_hp <= 0:
+            return
+
+        self.current_monster_hp = max(0, self.current_monster_hp - amount)
+        print(f"⚔️ Monstre touché ! -{amount} HP (Reste: {self.current_monster_hp})")
+        
+        self._write_stats() # Update JSON
+        
+        if self.current_monster_hp <= 0:
+            print(f"💀 {self.current_monster_name} est vaincu !")
+            # Bonus XP pour avoir tué le monstre
+            self.character.add_xp(50)
+            self._write_stats()
+            # Le monstre disparaît (HP=0), prochain spawn au prochain cadeau
     
     async def _call_ollama_api(self, prompt: str) -> str:
         """
@@ -259,6 +330,10 @@ class GameEngine:
             username: Nom de l'utilisateur qui a envoyé le cadeau
             gift_name: Nom du cadeau
         """
+        # S'assurer qu'un monstre est là pour le combat
+        if self.current_monster_hp <= 0:
+            await self.spawn_monster()
+
         # Récupérer les infos du cadeau
         gift_info = get_gift_info(gift_name)
         
@@ -271,8 +346,10 @@ class GameEngine:
         self._write_stats()
         
         # Créer le prompt pour l'IA
+        monster_info = f" Face à {self.current_monster_name} (HP: {self.current_monster_hp}/{self.current_monster_max_hp})," if self.current_monster_hp > 0 else ""
         level_info = f" 🎉 LEVEL UP ! Niveau {self.character.level} !" if leveled_up else ""
-        prompt = f"""L'utilisateur @{username} t'envoie un cadeau: {gift_name}.
+        
+        prompt = f"""L'utilisateur @{username} t'envoie un cadeau: {gift_name}.{monster_info}
 Tu {gift_info['action']}.
 Tu gagnes {hp_gained} HP et {gift_info['xp']} XP.{level_info}
 
@@ -281,11 +358,24 @@ Réponds en 1-2 phrases maximum. Remercie @{username} et décris brièvement ton
         # Ajouter à la queue API
         await self.api_queue.put(prompt)
     
-    async def handle_like(self):
-        """Gère un like (soin passif sans appel API)"""
-        hp_gained = self.character.add_hp(GameConfig.LIKE_HEAL_AMOUNT)
+    async def handle_like(self, count: int = 1):
+        """
+        Gère des likes (soin passif + dégâts monstre)
         
-        if hp_gained > 0:
+        Args:
+            count: Nombre de likes reçus
+        """
+        # Soin joueur
+        total_heal = GameConfig.LIKE_HEAL_AMOUNT * count
+        hp_gained = self.character.add_hp(total_heal)
+        
+        # Dégâts monstre
+        if self.current_monster_hp > 0:
+            damage = GameConfig.DAMAGE_PER_LIKE * count
+            await self.damage_monster(damage)
+        
+        # Update si changement
+        if hp_gained > 0 or self.current_monster_hp > 0:
             self._write_stats()
     
     async def handle_like_milestone(self, total_likes: int):

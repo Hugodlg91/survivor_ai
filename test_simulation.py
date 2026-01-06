@@ -53,8 +53,8 @@ class TikTokSimulator:
         
         print(f"👍 [SIMULATION] {count} like(s) reçu(s)")
         
-        for _ in range(count):
-            await self.game_engine.handle_like()
+        # Traitement par lot
+        await self.game_engine.handle_like(count)
     
     async def simulate_like_milestone(self):
         """Simule un palier de likes"""

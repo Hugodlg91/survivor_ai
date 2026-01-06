@@ -64,6 +64,7 @@ class GameConfig:
     
     # Likes
     LIKE_HEAL_AMOUNT = 1  # HP régénérés par like
+    DAMAGE_PER_LIKE = 10  # Dégâts infligés au monstre par like
     LIKE_THRESHOLD_FOR_REACTION = 50  # Réaction spéciale tous les X likes
     
     # Cooldown API
