@@ -81,7 +81,6 @@
         .shake-effect {
             animation: shake 0.5s;
             box-shadow: inset 0 0 50px rgba(255, 0, 0, 0.5);
-            /* Effet rouge sang */
         }
 
         .floating-text {
@@ -105,13 +104,6 @@
                 transform: translateY(-80px) scale(1.5);
             }
         }
-
-        /* Header removed as per user request */
-        /* .header {
-            text-align: center;
-            margin-bottom: 30px;
-            animation: fadeInDown 1s ease-out;
-        } */
 
         .title {
             font-size: clamp(32px, 4vw, 72px);
@@ -247,11 +239,10 @@
             animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        /* Action Panel - Moved to TOP */
+        /* Action Panel */
         .action-panel {
             position: absolute;
             top: 5vh;
-            /* Changed from bottom to top */
             left: 50%;
             transform: translateX(-50%);
             width: min(1200px, 80vw);
@@ -261,7 +252,6 @@
             padding: 20px;
             text-align: center;
             z-index: 100;
-            /* Ensure on top of everything */
         }
 
         .action-text {
@@ -271,7 +261,6 @@
             text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
         }
 
-        /* Keyframes utilitaires */
         @keyframes popIn {
             from {
                 transform: scale(0);
@@ -343,8 +332,6 @@
             animation: highlight 0.5s ease-out;
         }
 
-        /* Sprites Container */
-        /* Sprites Container - Full Screen to align with background */
         .sprites-container {
             position: absolute;
             top: 0;
@@ -355,15 +342,11 @@
             z-index: 5;
         }
 
-        /* Knight Sprite */
         .knight-sprite {
             position: absolute;
             left: 38%;
-            /* Moved to center-left clearing */
             bottom: 13%;
-            /* Aligned with grass ground */
             width: clamp(250px, 25vw, 400px);
-            /* Increased size significantly */
             height: auto;
             image-rendering: pixelated;
             filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5));
@@ -375,53 +358,39 @@
             image-rendering: pixelated;
         }
 
-        /* Monster Sprite */
         .monster-sprite {
             position: absolute;
-            right: 40%;
-            /* Moved to center-right clearing */
-            /* Fix position closer to right side */
-            bottom: 4%;
-            /* Aligned with grass ground */
+            right: 36%;
+            bottom: 1%;
             width: 400px;
-            /* Increased size */
-            /* Fixed width for consistency */
             height: 400px;
-            /* Increased size */
             display: flex;
-            /* Center image in container */
             justify-content: center;
             align-items: flex-end;
             opacity: 0;
             transform: translateX(50px) scaleX(-1);
-            /* Flip horizontally to face left */
             transition: opacity 0.3s, transform 0.3s;
             image-rendering: pixelated;
             filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5));
             overflow: hidden;
-            /* Ensure crop */
         }
 
         .monster-sprite.visible {
             opacity: 1;
             transform: translateX(0) scaleX(-1);
-            /* Maintain flip when visible */
         }
 
         .monster-sprite img {
             width: auto;
             height: 100%;
-            /* Spritesheet handling: show only first frame */
             object-fit: cover;
             object-position: left;
             aspect-ratio: 1/1;
-            /* Scale up to counteract object-fit cropping if needed */
             transform: scale(3.5);
             transform-origin: left center;
             image-rendering: pixelated;
         }
 
-        /* Sprite flash effect */
         @keyframes spriteFlash {
 
             0%,
@@ -438,7 +407,6 @@
             animation: spriteFlash 0.3s ease-out;
         }
 
-        /* Monster breathing animation */
         @keyframes breathe {
             0% {
                 transform: scale(1);
@@ -449,12 +417,10 @@
             }
         }
 
-        /* Monster Stats */
         .monster-stats {
             position: absolute;
-            right: 40%;
-            bottom: 35%;
-            /* Just above the monster (which is ~400px tall) */
+            right: 36%;
+            bottom: 32%;
             width: 400px;
             text-align: center;
             opacity: 0;
@@ -484,21 +450,26 @@
         .monster-hp-bar {
             height: 100%;
             background: linear-gradient(90deg, #ff5252 0%, #d50000 100%);
-            width: 100%;
             transition: width 0.2s;
             box-shadow: 0 0 15px rgba(255, 82, 82, 0.6);
+        }
+
+        .monster-hp-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px black;
+            z-index: 10;
         }
     </style>
 </head>
 
 <body>
     <div class="overlay-container">
-        <!-- Header removed -->
-        <!-- <div class="header">
-            <div class="title">🗡️ L'IA SURVIVANTE 🛡️</div>
-            <div class="subtitle">Aventure Interactive TikTok Live</div>
-        </div> -->
-
         <div class="stats-panel" id="statsPanel">
             <div class="stat-row">
                 <div class="stat-label">💚 Points de Vie</div>
@@ -533,23 +504,20 @@
             <div class="action-text" id="actionText">En attente...</div>
         </div>
 
-        <!-- Sprites Container -->
         <div class="sprites-container">
-            <!-- Knight Avatar -->
             <div class="knight-sprite" id="knightSprite">
                 <img src="FreeKnight_v1/Colour1/NoOutline/120x80_PNGSheets/_Idle.png" id="knightImage" alt="Knight">
             </div>
 
-            <!-- Monster (hidden by default) -->
             <div class="monster-sprite" id="monsterSprite">
                 <img src="" id="monsterImage" alt="Monster">
             </div>
 
-            <!-- Monster Stats (Name + HP) -->
             <div class="monster-stats" id="monsterStats">
                 <div class="monster-name" id="monsterName">Monstre</div>
                 <div class="monster-hp-bar-container">
                     <div class="monster-hp-bar" id="monsterHpBar"></div>
+                    <div class="monster-hp-text" id="monsterHpText">0/0</div>
                 </div>
             </div>
         </div>
@@ -558,13 +526,7 @@
     <script>
         const UPDATE_INTERVAL = 500;
         const JSON_FILE = 'obs_files/game_state.json';
-
-        // État précédent pour détecter les changements
         let lastState = { hp: 100, level: 1, inventory: [], last_action: '' };
-
-        // ============================================================================
-        // SPRITE ANIMATION SYSTEM
-        // ============================================================================
 
         class SpriteAnimator {
             constructor(imageElement, basePath) {
@@ -579,16 +541,13 @@
 
                 this.currentAnim = animName;
                 this.isAnimating = true;
-                // Use GIFs: __Idle.gif, __Attack.gif
                 this.image.src = `${this.basePath}/__${animName}.gif`;
 
-                // Flash effect
                 this.image.parentElement.classList.add('sprite-flash');
                 setTimeout(() => {
                     this.image.parentElement.classList.remove('sprite-flash');
                 }, 300);
 
-                // Auto-retour à Idle après animation (sauf si déjà Idle)
                 if (animName !== 'Idle') {
                     setTimeout(() => {
                         this.isAnimating = false;
@@ -598,15 +557,12 @@
             }
         }
 
-        // Initialize Knight Sprite with GIFs
         const knight = new SpriteAnimator(
             document.getElementById('knightImage'),
             'FreeKnight_v1/Colour1/NoOutline/120x80_gifs'
         );
-        // Start idle immediately
         knight.playAnimation('Idle');
 
-        // Monster System
         const monsters = [
             { name: 'Goblin', file: 'Monster_Creatures_Fantasy(Version 1.3)/Goblin/Attack3.png' },
             { name: 'Skeleton', file: 'Monster_Creatures_Fantasy(Version 1.3)/Skeleton/Attack3.png' },
@@ -618,26 +574,14 @@
             const monsterEl = document.getElementById('monsterSprite');
             const monsterImg = document.getElementById('monsterImage');
 
-            // Random monster
+            if (monsterEl.classList.contains('visible')) return;
+
             const monster = monsters[Math.floor(Math.random() * monsters.length)];
             monsterImg.src = monster.file;
 
-            // Show with animation
             monsterEl.classList.add('visible');
-
-            // Start breathing animation
             monsterImg.style.animation = 'breathe 1s infinite alternate';
-
-            // Hide after 2s
-            setTimeout(() => {
-                monsterEl.classList.remove('visible');
-                monsterImg.style.animation = '';
-            }, 2000);
         }
-
-        // ============================================================================
-        // FLOATING TEXT SYSTEM
-        // ============================================================================
 
         function spawnFloatingText(text, x, y, color) {
             const el = document.createElement('div');
@@ -650,39 +594,32 @@
             setTimeout(() => el.remove(), 1500);
         }
 
-        // ============================================================================
-        // GAME STATE LOADER
-        // ============================================================================
-
         async function loadGameState() {
             try {
-                const response = await fetch(JSON_FILE + '?t=' + Date.now());
+                // Add timestamp to prevent caching
+                const response = await fetch(`${JSON_FILE}?t=${Date.now()}`);
                 const data = await response.json();
                 updateUI(data);
             } catch (error) { console.error('Erreur chargement JSON:', error); }
         }
 
-        // ============================================================================
-        // UI UPDATE + SPRITE TRIGGERS
-        // ============================================================================
+        let isDying = false;
 
         function updateUI(data) {
             const hpBarRect = document.getElementById('hpBar').getBoundingClientRect();
 
-            // 1. HP CHANGES (Damage or Heal)
+            // 1. HP CHANGES
             if (data.hp !== lastState.hp) {
                 const diff = data.hp - lastState.hp;
                 const floatX = hpBarRect.left + (hpBarRect.width * (data.hp / data.max_hp));
                 const floatY = hpBarRect.top - 30;
 
                 if (diff < 0) {
-                    // DAMAGE: Screen shake + Red text + Hurt animation
                     document.body.classList.add('shake-effect');
                     setTimeout(() => document.body.classList.remove('shake-effect'), 500);
                     spawnFloatingText(diff, floatX, floatY, '#ff1744');
-                    knight.playAnimation('Hit', 600); // Knight hurt animation
+                    knight.playAnimation('Hit', 600);
                 } else {
-                    // HEAL: Green text
                     spawnFloatingText('+' + diff, floatX, floatY, '#00e676');
                 }
             }
@@ -691,16 +628,16 @@
             document.getElementById('hpBar').style.width = (data.hp / data.max_hp * 100) + '%';
             document.getElementById('hpText').textContent = `${data.hp}/${data.max_hp}`;
 
-            // 2. GIFT RECEIVED (Attack action)
+            // 2. GIFT RECEIVED
             if (data.last_action && data.last_action !== lastState.last_action) {
-                knight.playAnimation('Attack', 800); // Knight attacks
-                spawnMonster(); // Enemy appears!
+                knight.playAnimation('Attack', 800);
+                spawnMonster();
             }
 
-            // 3. LEVEL UP (Victory + Confetti)
+            // 3. LEVEL UP
             if (data.level > lastState.level) {
                 confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-                knight.playAnimation('Death', 1500); // Victory pose (using Death as victory)
+                knight.playAnimation('Death', 1500);
 
                 const badge = document.querySelector('.level-badge');
                 badge.style.transform = "scale(1.5) rotate(360deg)";
@@ -713,11 +650,18 @@
             document.getElementById('xpText').textContent = `${data.xp}/${data.xp_for_next_level}`;
 
             // 4. INVENTORY
+            const inventoryContainer = document.getElementById('inventoryItems');
             if (JSON.stringify(data.inventory) !== JSON.stringify(lastState.inventory)) {
-                const invEl = document.getElementById('inventoryItems');
-                invEl.innerHTML = data.inventory.length ?
-                    data.inventory.slice(-4).map(i => `<div class="inventory-item">🎁 ${i}</div>`).join('') :
-                    '<div class="inventory-item">Vide</div>';
+                inventoryContainer.innerHTML = '';
+                data.inventory.slice(-6).forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'inventory-item';
+                    div.textContent = item;
+                    inventoryContainer.appendChild(div);
+                });
+            }
+            if (data.inventory.length === 0) {
+                inventoryContainer.innerHTML = '<div class="inventory-item">Vide</div>';
             }
 
             // 5. ACTION TEXT
@@ -729,38 +673,50 @@
                 actionEl.textContent = data.last_action;
             }
 
-            // 6. MONSTER STATS (New Functionality)
+            // 6. MONSTER STATS MANAGEMENT
             const monsterStatsEl = document.getElementById('monsterStats');
             const monsterHpBar = document.getElementById('monsterHpBar');
             const monsterNameEl = document.getElementById('monsterName');
             const monsterSpriteEl = document.getElementById('monsterSprite');
 
-            if (data.monster && data.monster.is_alive) {
-                // Show Monster Stats
-                monsterStatsEl.style.opacity = '1';
+            const isMonsterAlive = data.monster && data.monster.is_alive;
+            // Check if monster was alive in the PREVIOUS state
+            const wasMonsterAlive = lastState.monster && lastState.monster.is_alive;
 
-                // Update Name
+            if (data.monster) {
                 monsterNameEl.textContent = data.monster.name;
-
-                // Update HP Bar
-                const hpPercent = (data.monster.hp / data.monster.max_hp) * 100;
+                const hpPercent = Math.max(0, (data.monster.hp / data.monster.max_hp) * 100);
                 monsterHpBar.style.width = hpPercent + '%';
+                document.getElementById('monsterHpText').textContent = `${data.monster.hp}/${data.monster.max_hp}`;
 
-                // Ensure sprite is visible (handled by spawn mechanism normally but robust here)
-                // Note: The spawnMonster() implementation currently hides it after 2s.
-                // We might want to keep it visible while it's alive in the future.
-                // For now, we rely on the spawn animation.
-
+                if (isMonsterAlive) {
+                    isDying = false;
+                    monsterStatsEl.style.opacity = '1';
+                    if (!monsterSpriteEl.classList.contains('visible')) {
+                        spawnMonster();
+                    }
+                } else if (wasMonsterAlive) {
+                    isDying = true;
+                    // JUST DIED: Keep visible for 1.5s then hide
+                    setTimeout(() => {
+                        monsterStatsEl.style.opacity = '0';
+                        monsterSpriteEl.classList.remove('visible');
+                        isDying = false;
+                    }, 1500);
+                } else if (!isDying) {
+                    // DEAD AND NOT DYING sequence
+                    monsterStatsEl.style.opacity = '0';
+                    if (monsterSpriteEl.classList.contains('visible')) {
+                        monsterSpriteEl.classList.remove('visible');
+                    }
+                }
             } else {
-                // Hide Stats if no monster
                 monsterStatsEl.style.opacity = '0';
             }
 
-            // Save state
-            lastState = { ...data, inventory: [...data.inventory] };
+            lastState = { ...data, inventory: [...data.inventory], monster: data.monster };
         }
 
-        // Start updates
         setInterval(loadGameState, UPDATE_INTERVAL);
         loadGameState();
     </script>
