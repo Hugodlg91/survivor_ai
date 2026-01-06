@@ -116,6 +116,7 @@
             font-weight: 900;
             background: linear-gradient(135deg, #ff6b9d 0%, #ffa06b 50%, #ffd56b 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
             text-shadow: 0 0 40px rgba(255, 107, 157, 0.5);
             animation: glow 2s infinite alternate;
@@ -336,6 +337,103 @@
         .new-action {
             animation: highlight 0.5s ease-out;
         }
+
+        /* Sprites Container */
+        .sprites-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 400px;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        /* Knight Sprite */
+        .knight-sprite {
+            position: absolute;
+            left: 100px;
+            bottom: 50px;
+            width: clamp(150px, 15vw, 250px);
+            height: auto;
+            image-rendering: pixelated;
+            filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5));
+        }
+
+        .knight-sprite img {
+            width: 100%;
+            height: auto;
+            image-rendering: pixelated;
+        }
+
+        /* Monster Sprite */
+        .monster-sprite {
+            position: absolute;
+            right: 15%;
+            /* Fix position closer to right side */
+            bottom: 50px;
+            width: 150px;
+            /* Fixed width for consistency */
+            height: 150px;
+            display: flex;
+            /* Center image in container */
+            justify-content: center;
+            align-items: flex-end;
+            opacity: 0;
+            transform: translateX(50px);
+            transition: opacity 0.3s, transform 0.3s;
+            image-rendering: pixelated;
+            filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5));
+            overflow: hidden;
+            /* Ensure crop */
+        }
+
+        .monster-sprite.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .monster-sprite img {
+            width: auto;
+            height: 100%;
+            /* Spritesheet handling: show only first frame */
+            object-fit: cover;
+            object-position: left;
+            aspect-ratio: 1/1;
+            /* Scale up to counteract object-fit cropping if needed */
+            transform: scale(3.5);
+            transform-origin: left center;
+            image-rendering: pixelated;
+        }
+
+        /* Sprite flash effect */
+        @keyframes spriteFlash {
+
+            0%,
+            100% {
+                filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5));
+            }
+
+            50% {
+                filter: drop-shadow(0 10px 20px rgba(255, 255, 255, 0.8)) brightness(1.3);
+            }
+        }
+
+        .sprite-flash {
+            animation: spriteFlash 0.3s ease-out;
+        }
+
+        /* Monster breathing animation */
+        @keyframes breathe {
+            0% {
+                transform: scale(1);
+            }
+
+            100% {
+                transform: scale(1.05);
+            }
+        }
     </style>
 </head>
 
@@ -379,14 +477,104 @@
             <div class="stat-label" style="color: #ff6b9d;">💬 Dernière Action</div>
             <div class="action-text" id="actionText">En attente...</div>
         </div>
+
+        <!-- Sprites Container -->
+        <div class="sprites-container">
+            <!-- Knight Avatar -->
+            <div class="knight-sprite" id="knightSprite">
+                <img src="FreeKnight_v1/Colour1/NoOutline/120x80_PNGSheets/_Idle.png" id="knightImage" alt="Knight">
+            </div>
+
+            <!-- Monster (hidden by default) -->
+            <div class="monster-sprite" id="monsterSprite">
+                <img src="" id="monsterImage" alt="Monster">
+            </div>
+        </div>
     </div>
 
     <script>
         const UPDATE_INTERVAL = 500;
         const JSON_FILE = 'obs_files/game_state.json';
 
-        // État précédent pour détecter les changements (Dégâts, Level Up...)
+        // État précédent pour détecter les changements
         let lastState = { hp: 100, level: 1, inventory: [], last_action: '' };
+
+        // ============================================================================
+        // SPRITE ANIMATION SYSTEM
+        // ============================================================================
+
+        class SpriteAnimator {
+            constructor(imageElement, basePath) {
+                this.image = imageElement;
+                this.basePath = basePath;
+                this.currentAnim = 'Idle';
+                this.isAnimating = false;
+            }
+
+            playAnimation(animName, duration = 800) {
+                if (this.isAnimating && animName === this.currentAnim) return;
+
+                this.currentAnim = animName;
+                this.isAnimating = true;
+                // Use GIFs: __Idle.gif, __Attack.gif
+                this.image.src = `${this.basePath}/__${animName}.gif`;
+
+                // Flash effect
+                this.image.parentElement.classList.add('sprite-flash');
+                setTimeout(() => {
+                    this.image.parentElement.classList.remove('sprite-flash');
+                }, 300);
+
+                // Auto-retour à Idle après animation (sauf si déjà Idle)
+                if (animName !== 'Idle') {
+                    setTimeout(() => {
+                        this.isAnimating = false;
+                        this.playAnimation('Idle');
+                    }, duration);
+                }
+            }
+        }
+
+        // Initialize Knight Sprite with GIFs
+        const knight = new SpriteAnimator(
+            document.getElementById('knightImage'),
+            'FreeKnight_v1/Colour1/NoOutline/120x80_gifs'
+        );
+        // Start idle immediately
+        knight.playAnimation('Idle');
+
+        // Monster System
+        const monsters = [
+            { name: 'Goblin', file: 'Monster_Creatures_Fantasy(Version 1.3)/Goblin/Attack3.png' },
+            { name: 'Skeleton', file: 'Monster_Creatures_Fantasy(Version 1.3)/Skeleton/Attack3.png' },
+            { name: 'Flying eye', file: 'Monster_Creatures_Fantasy(Version 1.3)/Flying eye/Attack3.png' },
+            { name: 'Mushroom', file: 'Monster_Creatures_Fantasy(Version 1.3)/Mushroom/Attack3.png' }
+        ];
+
+        function spawnMonster() {
+            const monsterEl = document.getElementById('monsterSprite');
+            const monsterImg = document.getElementById('monsterImage');
+
+            // Random monster
+            const monster = monsters[Math.floor(Math.random() * monsters.length)];
+            monsterImg.src = monster.file;
+
+            // Show with animation
+            monsterEl.classList.add('visible');
+
+            // Start breathing animation
+            monsterImg.style.animation = 'breathe 1s infinite alternate';
+
+            // Hide after 2s
+            setTimeout(() => {
+                monsterEl.classList.remove('visible');
+                monsterImg.style.animation = '';
+            }, 2000);
+        }
+
+        // ============================================================================
+        // FLOATING TEXT SYSTEM
+        // ============================================================================
 
         function spawnFloatingText(text, x, y, color) {
             const el = document.createElement('div');
@@ -399,6 +587,10 @@
             setTimeout(() => el.remove(), 1500);
         }
 
+        // ============================================================================
+        // GAME STATE LOADER
+        // ============================================================================
+
         async function loadGameState() {
             try {
                 const response = await fetch(JSON_FILE + '?t=' + Date.now());
@@ -407,45 +599,57 @@
             } catch (error) { console.error('Erreur chargement JSON:', error); }
         }
 
+        // ============================================================================
+        // UI UPDATE + SPRITE TRIGGERS
+        // ============================================================================
+
         function updateUI(data) {
-            const statsPanel = document.getElementById('statsPanel');
             const hpBarRect = document.getElementById('hpBar').getBoundingClientRect();
 
-            // 1. GESTION DES HP (Dégâts / Soins)
+            // 1. HP CHANGES (Damage or Heal)
             if (data.hp !== lastState.hp) {
                 const diff = data.hp - lastState.hp;
-                // Position du texte flottant : au bout de la barre de vie actuelle
                 const floatX = hpBarRect.left + (hpBarRect.width * (data.hp / data.max_hp));
                 const floatY = hpBarRect.top - 30;
 
                 if (diff < 0) {
-                    // Dégâts : Tremblement + Texte Rouge
+                    // DAMAGE: Screen shake + Red text + Hurt animation
                     document.body.classList.add('shake-effect');
                     setTimeout(() => document.body.classList.remove('shake-effect'), 500);
-                    spawnFloatingText(diff, floatX, floatY, '#ff1744'); // Rouge
+                    spawnFloatingText(diff, floatX, floatY, '#ff1744');
+                    knight.playAnimation('Hit', 600); // Knight hurt animation
                 } else {
-                    // Soin : Texte Vert
-                    spawnFloatingText('+' + diff, floatX, floatY, '#00e676'); // Vert
+                    // HEAL: Green text
+                    spawnFloatingText('+' + diff, floatX, floatY, '#00e676');
                 }
             }
-            // Mise à jour visuelle HP
+
+            // Update HP bar
             document.getElementById('hpBar').style.width = (data.hp / data.max_hp * 100) + '%';
             document.getElementById('hpText').textContent = `${data.hp}/${data.max_hp}`;
 
-            // 2. GESTION LEVEL UP
+            // 2. GIFT RECEIVED (Attack action)
+            if (data.last_action && data.last_action !== lastState.last_action) {
+                knight.playAnimation('Attack', 800); // Knight attacks
+                spawnMonster(); // Enemy appears!
+            }
+
+            // 3. LEVEL UP (Victory + Confetti)
             if (data.level > lastState.level) {
-                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } }); // Explosion de confettis
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                knight.playAnimation('Death', 1500); // Victory pose (using Death as victory)
+
                 const badge = document.querySelector('.level-badge');
                 badge.style.transform = "scale(1.5) rotate(360deg)";
                 setTimeout(() => badge.style.transform = "", 1000);
             }
             document.getElementById('levelNumber').textContent = data.level;
 
-            // Mise à jour XP
+            // Update XP bar
             document.getElementById('xpBar').style.width = (data.xp / data.xp_for_next_level * 100) + '%';
             document.getElementById('xpText').textContent = `${data.xp}/${data.xp_for_next_level}`;
 
-            // 3. INVENTAIRE
+            // 4. INVENTORY
             if (JSON.stringify(data.inventory) !== JSON.stringify(lastState.inventory)) {
                 const invEl = document.getElementById('inventoryItems');
                 invEl.innerHTML = data.inventory.length ?
@@ -453,19 +657,20 @@
                     '<div class="inventory-item">Vide</div>';
             }
 
-            // 4. ACTION
+            // 5. ACTION TEXT
             const actionEl = document.getElementById('actionText');
             if (data.last_action && data.last_action !== lastState.last_action) {
                 actionEl.classList.remove('new-action');
-                void actionEl.offsetWidth; // Force reflow
+                void actionEl.offsetWidth;
                 actionEl.classList.add('new-action');
                 actionEl.textContent = data.last_action;
             }
 
-            // Sauvegarde de l'état
+            // Save state
             lastState = { ...data, inventory: [...data.inventory] };
         }
 
+        // Start updates
         setInterval(loadGameState, UPDATE_INTERVAL);
         loadGameState();
     </script>

@@ -1,16 +1,16 @@
 {
   "hp": 130,
   "max_hp": 130,
-  "xp": 20,
+  "xp": 50,
   "xp_for_next_level": 100,
   "level": 4,
   "inventory": [
     "Rose",
-    "Football",
-    "Football",
+    "Swan",
+    "Perfume",
     "Perfume",
     "Lion",
     "Drama Queen"
   ],
-  "last_action": "\"Merci à @MegaFan pour ce cadeau incroyable ! Je suis désormais protégé par un lion spirituel qui va me défendre contre tout mon chemin ! 🦁🔥\"\n\n(Je ferme les yeux, je respire profondément et je sens la puissance du lion spirituel prendre possession de moi)"
+  "last_action": "\"Merci à @StreamHero pour le Drama Queen ! Je l'utilise pour détruire un mur qui empêchait mon chemin... Et voilà, je suis enfin libre ! 🎉 120 XP ! Level up ! 👏\""
 }
